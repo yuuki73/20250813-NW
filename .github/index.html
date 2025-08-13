@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ログイン</title>
+  <!-- CDN読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.6.15/dist/vuetify.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.6.15/dist/vuetify.js"></script>
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-container>
+        <!-- タイトル -->
+        <v-row class="text-h4 mb-4" justify="center">ログイン</v-row>
+
+        <!-- 入力フォーム -->
+        <v-row justify="center">
+          <v-col cols="12" sm="6" md="4">
+            <!-- ユーザー名入力欄 -->
+            <v-text-field 
+              v-model="userid" 
+              label="ユーザーID" 
+              outlined>
+            </v-text-field>
+
+            <!-- パスワード入力欄 -->
+            <v-text-field 
+              v-model="password" 
+              label="パスワード" 
+              type="password" 
+              outlined>
+            </v-text-field>
+
+            <!-- ログインボタン -->
+            <v-btn color="primary" class="mt-4" block @click="login">ログイン</v-btn>
+
+            <!-- サインアップボタン -->
+            <v-btn text class="mt-2" block @click="goToSignup">新規登録はこちら</v-btn>
+          </v-col>
+        </v-row>
+
+        <!-- エラーダイアログ -->
+        <v-dialog v-model="dialog" max-width="400">
+          <v-card>
+            <v-card-title class="headline">エラー</v-card-title>
+            <v-card-text>{{ errorMessage }}</v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" text @click="dialog = false">閉じる</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-container>
+    </v-app>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: {
+        userid: '',
+        password: '',
+        errorMessage: '',
+        dialog: false
+      },
+      methods: {
+        // ログイン処理（セッション処理なし）
+        login: async function () {
+          if (!this.userid || !this.password) {
+            this.errorMessage = "ユーザーIDとパスワードを入力してください。";
+            this.dialog = true;
+            return;
+          }
+
+          try {
+            const response = await axios.post('https://m3h-tsukagoshi-0730.azurewebsites.net/api/LOGIN?', {
+              ID: this.userid,
+              Password: this.password
+            });
+
+            console.log("レスポンス:", response.data);
+
+            if (response.status === 200 && response.data?.result === "Succeeded") {
+              // ログインに成功した場合はhome.htmlに画面遷移
+              window.location.href = "home.html";
+            } else {
+              this.errorMessage = response.data?.Message || "ログインに失敗しました。";
+              this.dialog = true;
+            }
+          } catch (err) {
+            console.error("ログインエラー:", err);
+            this.errorMessage = "ログインエラー：" + (err.response?.data || err.message);
+            this.dialog = true;
+          }
+        },
+        // サインアップページへ遷移
+        goToSignup() {
+          window.location.href = "signup.html";
+        }
+      }
+    });
+  </script>
+</body>
+</html>
