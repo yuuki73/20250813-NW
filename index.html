@@ -77,26 +77,44 @@
           }
 
           try {
-            const response = await axios.post('https://m3h-tsukagoshi-0730.azurewebsites.net/api/LOGIN?', {
+            const response = await axios.post('https://m3h-tsukagoshi-0730.azurewebsites.net/api/LOGIN', {
               ID: this.userid,
               Password: this.password
             });
 
             console.log("レスポンス:", response.data);
 
+                       // HTTPレスポンスが200 かつ レスポンスメッセージがSucceededの場合はログオン
             if (response.status === 200 && response.data?.result === "Succeeded") {
-              // ログインに成功した場合はhome.htmlに画面遷移
-              window.location.href = "home.html";
+            
+              // ログイン成功時にセッション作成APIを呼び出し
+              const sessionResponse = await axios.post('https://m3h-tsukagoshi-0730.azurewebsites.net/api/CreateSession?', {
+                UserId: this.userid,
+                UserName: response.data.userName
+              });
+
+              if (sessionResponse.status === 200) {
+                // cookieにセッション情報を保存
+                document.cookie = `session_id=${encodeURIComponent(sessionResponse.data.sessionId)}; path=/; secure; samesite=strict`;
+                console.log("Session ID:", sessionResponse.data.sessionId);
+
+                // ログイン後の画面へ遷移
+                window.location.href = "home.html";
+              } else {
+                this.errorMessage = "セッションの生成に失敗しました。";
+                this.dialog = true;
+              }
             } else {
               this.errorMessage = response.data?.Message || "ログインに失敗しました。";
               this.dialog = true;
             }
-          } catch (err) {
+            } catch (err) {
             console.error("ログインエラー:", err);
             this.errorMessage = "ログインエラー：" + (err.response?.data || err.message);
             this.dialog = true;
           }
         },
+
         // サインアップページへ遷移
         goToSignup() {
           window.location.href = "signup.html";

@@ -77,7 +77,7 @@
           }
 
           try {
-            const response = await axios.post('https://m3h-tsukagoshi-0730.azurewebsites.net/api/INSERTUSER?', {
+            const response = await axios.post('https://m3h-tsukagoshi-0730.azurewebsites.net/api/INSERTUSER', {
               ID: this.userid,
               Password: this.password,
               Name: this.displayName
